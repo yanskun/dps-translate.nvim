@@ -1,4 +1,3 @@
-このプラグインは neovim で動きます。
 # dep-translate.nvim
 
 ## Required
