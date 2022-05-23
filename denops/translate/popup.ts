@@ -1,51 +1,43 @@
-import { autocmd, Denops, ensureNumber, execute, popup } from "./deps.ts";
+import {
+  autocmd,
+  Denops,
+  ensureNumber,
+  execute,
+  fn,
+  popup,
+} from "./deps.ts";
+import { getByte } from "./byte.ts"
 
 async function makeEmptyBuffer(denops: Denops): Promise<number> {
-  if (denops.meta.host === "nvim") {
-    const bufnr = await denops.call("nvim_create_buf", false, true);
-    ensureNumber(bufnr);
-    return bufnr;
-  } else {
-    const name = "dps-popup-test://popup";
-    await execute(denops, `badd ${name}`);
-    const bufnr = await denops.call("bufnr", `^${name}$`);
-    ensureNumber(bufnr);
-    await denops.call("setbufvar", bufnr, "&buftype", "nofile");
-    return bufnr;
-  }
+  const bufnr = await denops.call("nvim_create_buf", false, true);
+  ensureNumber(bufnr);
+  return bufnr;
 }
 
-function closeCmd(denops: Denops, winid: number): string {
-  if (denops.meta.host === "nvim") {
-    return `nvim_win_close(${winid}, v:false)`;
-  } else {
-    return `popup_close(${winid})`;
-  }
+function closeCmd(winid: number): string {
+  return `nvim_win_close(${winid}, v:false)`;
 };
 
 export async function openPopup(
   denops: Denops,
-  content: string | string[],
-  autoclose = false,
-  style?: popup.PopupWindowStyle,
+  content: string,
 ): Promise<void> {
-  const row = await denops.call("line", ".")
-  const vcol = await denops.call("virtcol", ".")
-  ensureNumber(row);
-  ensureNumber(vcol);
+  const winrow = await fn.winline(denops);
+  const wincol = await fn.wincol(denops);
 
-  const isContentString = typeof content === "string";
+  let row: number;
+  if (winrow <= 2) {
+    row = 3;
+  } else {
+    row = winrow + 1;
+  }
 
-  if (typeof (style) === "undefined") {
-    style = {
-      row: 1,
-      col: vcol,
-      width: isContentString
-        ? content.length
-        : Math.max(...content.map((c) => c.length)),
-      height: isContentString ? 1 : content.length,
-      border: true,
-    };
+  const style: popup.PopupWindowStyle = {
+    row,
+    col: wincol,
+    width: getByte(content) + 2,
+    height: 1,
+    border: true,
   }
   const bufnr = await makeEmptyBuffer(denops);
   ensureNumber(bufnr);
@@ -53,20 +45,21 @@ export async function openPopup(
   const popupWinId = await popup.open(denops, bufnr, style);
   ensureNumber(popupWinId);
 
-  if (autoclose) {
-    const cmd = closeCmd(denops, popupWinId);
-    await autocmd.group(denops, "dps_float_close", (helper) => {
-      helper.remove(
-        ["CursorMoved", "CursorMovedI", "VimResized"],
-        "*",
-      );
-      helper.define(
-        ["CursorMoved", "CursorMovedI", "VimResized"],
-        "*",
-        `if (line('.') != ${row} || virtcol('.') != ${vcol}) | call ${cmd} | augroup dps_float_close | autocmd! | augroup END | endif`,
-      )
-    });
-  }
+  await denops.call("setbufline", bufnr, 1, content);
+
+  // autoclose popup, when move cursor
+  const cmd = closeCmd(popupWinId);
+  await autocmd.group(denops, "dps_float_close", (helper) => {
+    helper.remove(
+      ["CursorMoved", "CursorMovedI", "VimResized"],
+      "*",
+    );
+    helper.define(
+      ["CursorMoved", "CursorMovedI", "VimResized"],
+      "*",
+      `if (line('.') != ${winrow} || virtcol('.') != ${wincol}) | call ${cmd} | augroup dps_float_close | autocmd! | augroup END | endif`,
+    )
+  });
 
   return await Promise.resolve();
 };
