@@ -1,20 +1,13 @@
-When God created two sexes, he may have been overdoing it.
+このプラグインは neovim で動きます。
+# dep-translate.nvim
 
-Bill Dickey is learning me his experience.
+## Required
+- Neovim
+- [denops.vim](https://github.com/vim-denops/denops.vim)
 
+## Install
 
-
-
-
-
-
-
-
-
-
-
-
-
-When God created two sexes, he may have been overdoing it.
-
-こんにちわ世界
+```lua
+use 'vim-denops/denops.vim'
+use 'yasudanaoya/dps-translate.nvim'
+```

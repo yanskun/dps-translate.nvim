@@ -25,8 +25,8 @@ export async function openPopup(
   const wincol = await fn.wincol(denops);
 
   let row: number;
-  if (winrow <= 2) {
-    row = 3;
+  if (winrow <= 3) {
+    row = 4;
   } else {
     row = winrow + 1;
   }
