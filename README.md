@@ -10,3 +10,11 @@
 use 'vim-denops/denops.vim'
 use 'yasudanaoya/dps-translate.nvim'
 ```
+
+
+## Usage
+
+Command|Description
+--|--
+`:Translate`| Translate en to ja
+`:Translate!`| Translate ja to en
