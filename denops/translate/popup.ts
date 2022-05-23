@@ -2,7 +2,6 @@ import {
   autocmd,
   Denops,
   ensureNumber,
-  execute,
   fn,
   popup,
 } from "./deps.ts";
