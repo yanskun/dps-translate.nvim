@@ -24,13 +24,7 @@ export async function openPopup(
   const winrow = await fn.winline(denops);
   const wincol = await fn.wincol(denops);
 
-  let row: number;
-  if (winrow <= 3) {
-    row = 4;
-  } else {
-    row = winrow + 1;
-  }
-
+  const row: number = winrow + 2;
   const style: popup.PopupWindowStyle = {
     row,
     col: wincol,

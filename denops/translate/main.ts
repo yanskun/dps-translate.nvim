@@ -33,6 +33,9 @@ export async function main(denops: Denops): Promise<void> {
             ? await fn.getline(denops, line1)
             : (await fn.getline(denops, line1, line2)).join(" ")
         )
+
+      if (!text) return await Promise.resolve();
+
       ensureString(text)
 
 
